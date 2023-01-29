@@ -51,9 +51,8 @@ vim.treesitter.query.add_directive("injection_comment!", function(
 end)
 
 function M.setup(conf)
-	M.conf = conf or {}
-
 	M.conf.prefix = conf.prefix or M.conf.prefix
+	M.conf.pattern = conf.pattern or M.conf.pattern
 	M.conf.available_parsers = conf.available_parsers or get_available_parsers()
 	M.conf.cmp = conf.cmp
 
