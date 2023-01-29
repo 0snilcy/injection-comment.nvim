@@ -47,7 +47,7 @@ function M.init(conf)
 	end
 
 	source.conf = conf
-	source.available_parsers_labels = get_available_parsers_labels()
+	source.available_parsers_labels = get_available_parsers_labels(conf.available_parsers)
 
 	cmp.register_source("injection-comment", source.new())
 end
