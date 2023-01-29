@@ -1,4 +1,11 @@
-local M = {}
+local M = {
+	conf = {
+		available_parsers = {},
+		prefix = "query:ft:",
+		pattern = "[%l]+",
+		cmp = false,
+	},
+}
 
 local function get_available_parsers()
 	local available_parsers = {}
@@ -12,51 +19,46 @@ local function get_available_parsers()
 	return available_parsers
 end
 
-local function init_ts(conf)
-	local hl_query_prefix = "query:ft:"
-	local hl_query_pattern = hl_query_prefix .. "[%l]+"
+vim.treesitter.query.add_predicate("injection_comment?", function(
+	match, -- :table,
+	_, -- pattern:string
+	bufnr, -- :number
+	predicate, -- :string[]
+	_ -- metadata:table
+)
+	local node = match[predicate[2]]
+	local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
+	return comment_text:match(M.conf.prefix .. M.conf.pattern)
+end)
 
-	vim.treesitter.query.add_predicate("injection_comment?", function(
-		match, -- :table,
-		_, -- pattern:string
-		bufnr, -- :number
-		predicate, -- :string[]
-		_ -- metadata:table
-	)
-		local node = match[predicate[2]]
-		local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
-		return comment_text:match(hl_query_pattern)
-	end)
+vim.treesitter.query.add_directive("injection_comment!", function(
+	match, -- :table,
+	_, -- pattern:string
+	bufnr, -- :number
+	predicate, -- :string[]
+	metadata -- :table
+)
+	local node = match[predicate[2]]
+	local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
+	local lang = comment_text:match(M.conf.prefix .. M.conf.pattern):sub(#M.conf.prefix + 1) or ""
 
-	vim.treesitter.query.add_directive("injection_comment!", function(
-		match, -- :table,
-		_, -- pattern:string
-		bufnr, -- :number
-		predicate, -- :string[]
-		metadata -- :table
-	)
-		local node = match[predicate[2]]
-		local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
-		local lang = comment_text:match(hl_query_pattern):sub(#hl_query_prefix + 1) or ""
-
-		for _, value in ipairs(conf.available_parsers) do
-			if value == lang then
-				metadata.language = lang
-				break
-			end
+	for _, value in ipairs(M.conf.available_parsers) do
+		if value == lang then
+			metadata.language = lang
+			break
 		end
-	end)
-end
+	end
+end)
 
 function M.setup(conf)
-	conf = conf or {}
-	conf.prefix = conf.prefix or "query:ft:"
-	conf.available_parsers = get_available_parsers()
+	M.conf = conf or {}
 
-	init_ts(conf)
+	M.conf.prefix = conf.prefix or M.conf.prefix
+	M.conf.available_parsers = conf.available_parsers or get_available_parsers()
+	M.conf.cmp = conf.cmp
 
-	if conf.cmp then
-		require("injection-comment.cmp").init(conf)
+	if M.conf.cmp then
+		require("injection-comment.cmp").init(M.conf)
 	end
 end
 
