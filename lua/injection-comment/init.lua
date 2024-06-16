@@ -27,7 +27,17 @@ vim.treesitter.query.add_predicate("injection_comment?", function(
 	_ -- metadata:table
 )
 	local node = match[predicate[2]]
+
+	vim.print({
+		"injection_comment?",
+		match, -- :table,
+		_, -- pattern:string
+		bufnr, -- :number
+		predicate, -- :string[]
+	})
+
 	local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
+
 	return comment_text:match(M.conf.prefix .. M.conf.pattern)
 end)
 
@@ -39,6 +49,16 @@ vim.treesitter.query.add_directive("injection_comment!", function(
 	metadata -- :table
 )
 	local node = match[predicate[2]]
+
+	vim.print({
+		"injection_comment!",
+		match, -- :table,
+		_, -- pattern:string
+		bufnr, -- :number
+		predicate, -- :string[]
+		metadata, -- :table
+	})
+
 	local comment_text = vim.treesitter.query.get_node_text(node, bufnr)
 	local lang = comment_text:match(M.conf.prefix .. M.conf.pattern):sub(#M.conf.prefix + 1) or ""
 
@@ -57,7 +77,7 @@ function M.setup(conf)
 	M.conf.cmp = conf.cmp
 
 	if M.conf.cmp then
-		require("injection-comment.cmp").init(M.conf)
+		-- require("injection-comment.cmp").init(M.conf)
 	end
 end
 
